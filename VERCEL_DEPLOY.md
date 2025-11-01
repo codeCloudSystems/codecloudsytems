@@ -21,10 +21,10 @@ O projeto já está configurado com:
 3. Clique em "Add New Project"
 4. Importe seu repositório do GitHub/GitLab
 5. Configure as seguintes opções:
-   - **Framework Preset**: Vite
-   - **Build Command**: `vite build`
-   - **Output Directory**: `dist/public`
-   - **Install Command**: `npm install`
+   - **Framework Preset**: Other (ou Vite)
+   - **Build Command**: Deixe vazio (já está no vercel.json)
+   - **Output Directory**: Deixe vazio (já está no vercel.json)
+   - **Install Command**: Deixe vazio (já está no vercel.json)
 
 6. Clique em "Deploy"
 
