@@ -3,10 +3,7 @@
   "builds": [
     {
       "src": "server/index.ts",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": ["client/dist/**"]
-      }
+      "use": "@vercel/node"
     },
     {
       "src": "client/dist/**",
@@ -14,19 +11,10 @@
     }
   ],
   "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/server/index.ts"
-    },
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/client/dist/index.html"
-    }
+    { "src": "/api/(.*)", "dest": "/server/index.ts" },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/client/dist/index.html" }
   ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  "buildCommand": "npm run build",
+  "outputDirectory": "client/dist"
 }
