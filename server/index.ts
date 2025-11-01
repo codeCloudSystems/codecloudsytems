@@ -1,7 +1,8 @@
 import express, { type Request, Response, NextFunction } from "express";
-import { createServer } from "http";
+import serverless from "serverless-http";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { createServer } from "http";
 
 const app = express();
 const server = createServer(app);
@@ -12,6 +13,7 @@ declare module "http" {
   }
 }
 
+// Middleware para rawBody
 app.use(
   express.json({
     verify: (req, _res, buf) => {
@@ -19,13 +21,11 @@ app.use(
     },
   })
 );
-
 app.use(express.urlencoded({ extended: false }));
 
 // Logger detalhado
 app.use((req, res, next) => {
   const start = Date.now();
-  const path = req.path;
   let capturedJsonResponse: Record<string, any> | undefined;
 
   const originalResJson = res.json;
@@ -36,8 +36,8 @@ app.use((req, res, next) => {
 
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+    if (req.path.startsWith("/api")) {
+      let logLine = `${req.method} ${req.path} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       if (logLine.length > 80) logLine = logLine.slice(0, 79) + "…";
       log(logLine);
@@ -47,23 +47,27 @@ app.use((req, res, next) => {
   next();
 });
 
-(async () => {
+async function main() {
   await registerRoutes(app);
 
-  // Tratamento de erros
+  // Middleware de erro
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
     res.status(status).json({ message });
   });
 
-  // Dev ou prod
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
+  if (process.env.NODE_ENV === "development") {
+    await setupVite(app);
+    const port = parseInt(process.env.PORT || "5000", 10);
+    server.listen(port, () => log(`Server running on http://localhost:${port}`));
   } else {
     serveStatic(app);
   }
+}
 
-  const port = parseInt(process.env.PORT || "5000", 10);
-  server.listen({ port, host: "0.0.0.0" }, () => log(`Server running on port ${port}`));
-})();
+main();
+
+// Export serverless para Vercel
+export const handler = serverless(app);
+export default handler;
